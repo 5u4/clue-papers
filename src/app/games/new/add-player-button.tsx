@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useAtomValue, useSetAtom } from "jotai/react";
 import { nanoid } from "nanoid";
 
 import { Button } from "~/components/ui/button";
@@ -17,7 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { usePlayersStore } from "~/data/use-player-store";
+import { addPlayerAtom, playersAtom } from "~/data/players-store";
 import { notEmpty } from "~/utils/not-empty";
 import { cn } from "~/utils/ui";
 
@@ -30,8 +31,8 @@ export const AddPlayerButton: React.FC<Props> = ({
   selectedPlayerNames,
   onAddPlayerName,
 }) => {
-  const players = usePlayersStore.use.players();
-  const addPlayer = usePlayersStore.use.add();
+  const players = useAtomValue(playersAtom);
+  const addPlayer = useSetAtom(addPlayerAtom);
 
   const [name, setName] = useState<string>();
   const [open, setOpen] = useState(false);
