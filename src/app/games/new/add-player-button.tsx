@@ -32,15 +32,16 @@ export const AddPlayerButton: React.FC<Props> = ({
 }) => {
   const players = usePlayersStore.use.players();
   const addPlayer = usePlayersStore.use.add();
+
   const [name, setName] = useState<string>();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState<string>();
 
-  const onAddPlayer = () => {
+  const onAddPlayer = (name: string) => {
     if (players.every((p) => p.name !== name)) {
       addPlayer({ id: nanoid(), name: name! });
     }
-    onAddPlayerName(name!);
+    onAddPlayerName(name);
     setName("");
   };
 
@@ -79,7 +80,13 @@ export const AddPlayerButton: React.FC<Props> = ({
                         key={player.name ?? ""}
                         value={player.name}
                         onSelect={(value) => {
-                          setName(value);
+                          if (players.some((p) => p.name === value)) {
+                            /** directly add to list if is known player */
+                            onAddPlayer(value);
+                          } else {
+                            /** wait for user to confirm add player if is new player */
+                            setName(value);
+                          }
                           setText("");
                           setOpen(false);
                         }}
@@ -98,7 +105,7 @@ export const AddPlayerButton: React.FC<Props> = ({
 
         <Button
           disabled={!name || selectedPlayerNames.some((p) => p === name)}
-          onClick={onAddPlayer}
+          onClick={() => onAddPlayer(name!)}
         >
           Add Player
         </Button>

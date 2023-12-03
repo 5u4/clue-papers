@@ -45,6 +45,8 @@ const Inner = () => {
     router.push(pathname + "?" + newParams.toString());
   };
 
+  const startGame = () => {};
+
   return (
     <div className="flex flex-col space-y-4">
       <AddPlayerButton
