@@ -2,11 +2,11 @@ import React from "react";
 import {
   closestCenter,
   DndContext,
-  DragEndEvent,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
+  type DragEndEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,

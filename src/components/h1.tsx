@@ -15,3 +15,4 @@ export const H1 = React.forwardRef<
     {...props}
   ></h1>
 ));
+H1.displayName = "H1";

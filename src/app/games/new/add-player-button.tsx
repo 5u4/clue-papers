@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai/react";
-import { nanoid } from "nanoid";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -18,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { addPlayerAtom, playersAtom } from "~/data/players-store";
+import { addPlayerActionAtom, playersReadOnlyAtom } from "~/data/players-store";
 import { notEmpty } from "~/utils/not-empty";
 import { cn } from "~/utils/ui";
 
@@ -31,8 +30,8 @@ export const AddPlayerButton: React.FC<Props> = ({
   selectedPlayerNames,
   onAddPlayerName,
 }) => {
-  const players = useAtomValue(playersAtom);
-  const addPlayer = useSetAtom(addPlayerAtom);
+  const players = useAtomValue(playersReadOnlyAtom);
+  const addPlayer = useSetAtom(addPlayerActionAtom);
 
   const [name, setName] = useState<string>();
   const [open, setOpen] = useState(false);
@@ -40,7 +39,7 @@ export const AddPlayerButton: React.FC<Props> = ({
 
   const onAddPlayer = (name: string) => {
     if (players.every((p) => p.name !== name)) {
-      addPlayer({ id: nanoid(), name: name! });
+      addPlayer({ name: name });
     }
     onAddPlayerName(name);
     setName("");
@@ -61,6 +60,7 @@ export const AddPlayerButton: React.FC<Props> = ({
               <CommandInput
                 placeholder="Type in player name"
                 value={text}
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
                 onInput={(e) => setText((e.target as any).value)}
               />
               <CommandList>

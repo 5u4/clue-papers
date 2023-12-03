@@ -1,5 +1,6 @@
 import { atomWithStorage } from "jotai/utils";
 import { atom } from "jotai/vanilla";
+import { nanoid } from "nanoid";
 import { z } from "zod";
 
 export const playerSchema = z.object({
@@ -9,13 +10,19 @@ export const playerSchema = z.object({
 
 export type Player = z.infer<typeof playerSchema>;
 
-const _playersAtom = atomWithStorage<Player[]>("players", []);
-export const playersAtom = atom((get) => get(_playersAtom));
+const playersAtom = atomWithStorage<Player[]>("players", []);
 
-export const addPlayerAtom = atom(null, (get, set, update: Player) => {
-  const players = get(playersAtom);
-  if (players.some((p) => p.name === update.name)) {
-    throw new Error(`player name is taken ${update}`);
-  }
-  set(_playersAtom, [...players, update]);
-});
+export const playersReadOnlyAtom = atom((get) => get(playersAtom));
+
+const addPlayerPropsSchema = playerSchema.pick({ name: true });
+export const addPlayerActionAtom = atom(
+  null,
+  (get, set, props: z.infer<typeof addPlayerPropsSchema>) => {
+    props = addPlayerPropsSchema.parse(props);
+    const players = get(playersReadOnlyAtom);
+    if (players.some((p) => p.name === props.name)) {
+      throw new Error(`player name is taken ${JSON.stringify(props)}`);
+    }
+    set(playersAtom, [...players, { id: nanoid(), ...props }]);
+  },
+);

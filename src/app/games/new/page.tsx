@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSetAtom } from "jotai/react";
 import { z } from "zod";
 
 import { AddPlayerButton } from "~/app/games/new/add-player-button";
@@ -9,6 +10,7 @@ import { PlayerListSort } from "~/app/games/new/player-list-sort";
 import { ClientOnly } from "~/components/client-only";
 import { H1 } from "~/components/h1";
 import { Button } from "~/components/ui/button";
+import { createGameActionAtom } from "~/data/games-store";
 
 const GAME_PLAYERS_KEY = "p";
 
@@ -45,7 +47,12 @@ const Inner = () => {
     router.push(pathname + "?" + newParams.toString());
   };
 
-  const startGame = () => {};
+  const createGame = useSetAtom(createGameActionAtom);
+
+  const startGame = () => {
+    const gameId = createGame({ names: gamePlayerNames });
+    router.push(`/games/${gameId}`);
+  };
 
   return (
     <div className="flex flex-col space-y-4">
@@ -61,7 +68,11 @@ const Inner = () => {
         setPlayerNameOrder={setGamePlayerNames}
       />
 
-      <Button className="w-full" disabled={gamePlayerNames.length < 2}>
+      <Button
+        className="w-full"
+        disabled={gamePlayerNames.length < 2}
+        onClick={startGame}
+      >
         Start Game
       </Button>
     </div>
