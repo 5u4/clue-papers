@@ -18,6 +18,12 @@ export const GameHistories: React.FC<Props> = ({ id, marks }) => {
 
   return (
     <div className="flex flex-col gap-y-4 items-center">
+      {game.turns.length === 0 && (
+        <div className="text-muted-foreground px-2 py-8 text-sm w-full border rounded-md text-center">
+          No history yet.
+        </div>
+      )}
+
       {game.turns
         .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
         .map((turn) => (

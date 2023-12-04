@@ -65,7 +65,7 @@ export const GameNoteTable: React.FC<Props> = ({
                   <TableCell
                     className={cn(
                       "text-center py-1 px-0.5 text-xs",
-                      ansMark && "bg-green-100",
+                      ansMark && "bg-green-50",
                     )}
                   >
                     {clue}
@@ -112,7 +112,7 @@ const NoteCell: React.FC<{
   const setGameCustomMark = useSetAtom(setGameCustomMarkActionAtom);
 
   return (
-    <TableCell className={cn("text-center px-0.5", mark && "bg-green-100")}>
+    <TableCell className={cn("text-center px-0.5", mark && "bg-green-50")}>
       <Button
         disabled={mark === "yes" || mark === "no"}
         variant="link"
