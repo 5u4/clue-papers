@@ -423,7 +423,7 @@ export const GameSuggestionForm: React.FC<Props> = ({
                 </PopoverContent>
               </Popover>
               <FormDescription>
-                Leave empty if you don't know the disproved clue.
+                Leave empty if you don&apos;t know the disproved clue.
               </FormDescription>
               <FormMessage />
             </FormItem>

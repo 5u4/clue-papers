@@ -31,7 +31,7 @@ export const turnSchema = z.discriminatedUnion("type", [
     success: z.boolean(),
   }),
 ]);
-type Turn = z.infer<typeof turnSchema>;
+export type Turn = z.infer<typeof turnSchema>;
 
 const markSymbolSchema = z.union([
   z.literal("no"),
@@ -193,8 +193,8 @@ export const computeMarks = (game: Game) => {
     if (!(clueId in marks)) marks[clueId] = {};
 
     for (let i = startIndex; i <= endIndex; i++) {
-      const pid = game.players.at(i % game.players.length)?.id!;
-      marks[clueId]![pid] = "no";
+      const pid = game.players.at(i % game.players.length)?.id;
+      if (pid) marks[clueId]![pid] = "no";
     }
   };
 

@@ -3,11 +3,13 @@
 import { useAtomValue } from "jotai/react";
 
 import { GameGuard } from "~/app/games/[id]/game-guard";
+import { GameHistories } from "~/app/games/[id]/game-histories";
 import { GameNextActionSheet } from "~/app/games/[id]/game-next-action-sheet";
 import { GameNoteTable } from "~/app/games/[id]/game-note-table";
 import { InitialCluesGuard } from "~/app/games/[id]/initial-clues-guard";
 import { ClientOnly } from "~/components/client-only";
 import { H1 } from "~/components/h1";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { clues } from "~/data/clues";
 import { computeMarks, gamesReadOnlyAtom } from "~/data/games-store";
 
@@ -44,11 +46,23 @@ const Inner: React.FC<{ id: string }> = ({ id }) => {
   return (
     <div className="flex flex-col space-y-4">
       <GameNextActionSheet id={id} />
-      <GameNoteTable
-        id={id}
-        clues={[...clues.who, ...clues.what, ...clues.where]}
-        marks={marks}
-      />
+      <Tabs defaultValue="note">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="note">Note</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="note">
+          <GameNoteTable
+            id={id}
+            clues={[...clues.who, ...clues.what, ...clues.where]}
+            marks={marks}
+          />
+        </TabsContent>
+        <TabsContent value="history">
+          <GameHistories id={id} marks={marks} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

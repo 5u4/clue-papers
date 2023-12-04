@@ -10,13 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Clue } from "~/data/clues";
+import { type Clue } from "~/data/clues";
 import {
   ANSWER_PLAYER_ID,
-  Game,
   gamesReadOnlyAtom,
   markToDisplay,
   setGameCustomMarkActionAtom,
+  type Game,
 } from "~/data/games-store";
 import { cn } from "~/utils/ui";
 
@@ -24,9 +24,18 @@ interface Props {
   id: string;
   clues: Clue[];
   marks: Game["marks"];
+  displayClueIds?: Set<string> | undefined;
 }
 
-export const GameNoteTable: React.FC<Props> = ({ id, clues, marks }) => {
+export const GameNoteTable: React.FC<Props> = ({
+  id,
+  clues,
+  marks,
+  displayClueIds = new Set([
+    ANSWER_PLAYER_ID,
+    ...clues.map((clue) => clue.full),
+  ]),
+}) => {
   const games = useAtomValue(gamesReadOnlyAtom);
   const game = games.find((g) => g.id === id);
   if (!game) throw new Error(`cannot find game ${id}`);
@@ -51,40 +60,42 @@ export const GameNoteTable: React.FC<Props> = ({ id, clues, marks }) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {clues.map((clue) => {
-            const ansMark = marks[clue.full]?.[ANSWER_PLAYER_ID];
-            return (
-              <TableRow key={clue.full}>
-                <TableCell
-                  className={cn(
-                    "text-center py-1 px-0.5 text-xs",
-                    ansMark && "bg-green-100",
-                  )}
-                >
-                  {clue.icon}
-                  <br />
-                  {clue.short}
-                </TableCell>
-                <NoteCell
-                  id={id}
-                  marks={marks}
-                  clueId={clue.full}
-                  playerId={ANSWER_PLAYER_ID}
-                />
-                {Array.from({ length: game.players.length }).map((_, i) => {
-                  return (
-                    <NoteCell
-                      id={id}
-                      marks={marks}
-                      clueId={clue.full}
-                      playerId={game.players[i]!.id}
-                      key={i}
-                    />
-                  );
-                })}
-              </TableRow>
-            );
-          })}
+          {clues
+            .filter((clue) => displayClueIds.has(clue.full))
+            .map((clue) => {
+              const ansMark = marks[clue.full]?.[ANSWER_PLAYER_ID];
+              return (
+                <TableRow key={clue.full}>
+                  <TableCell
+                    className={cn(
+                      "text-center py-1 px-0.5 text-xs",
+                      ansMark && "bg-green-100",
+                    )}
+                  >
+                    {clue.icon}
+                    <br />
+                    {clue.short}
+                  </TableCell>
+                  <NoteCell
+                    id={id}
+                    marks={marks}
+                    clueId={clue.full}
+                    playerId={ANSWER_PLAYER_ID}
+                  />
+                  {Array.from({ length: game.players.length }).map((_, i) => {
+                    return (
+                      <NoteCell
+                        id={id}
+                        marks={marks}
+                        clueId={clue.full}
+                        playerId={game.players[i]!.id}
+                        key={i}
+                      />
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
         </TableBody>
       </Table>
     </div>

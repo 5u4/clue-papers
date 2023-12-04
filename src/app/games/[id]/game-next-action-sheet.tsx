@@ -61,7 +61,16 @@ export const GameNextActionSheet: React.FC<Props> = ({ id }) => {
   return (
     <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
       <SheetTrigger asChild>
-        <Button className="w-full">Next</Button>
+        <Button
+          className="w-full"
+          disabled={(() => {
+            const lastTurn = game.turns.at(-1);
+            if (!lastTurn) return false;
+            return lastTurn.type === "accusation" && lastTurn.success;
+          })()}
+        >
+          Next
+        </Button>
       </SheetTrigger>
       <SheetContent side="bottom">
         <div className="mx-auto max-w-xl flex flex-col space-y-4">
@@ -114,7 +123,7 @@ export const GameNextActionSheet: React.FC<Props> = ({ id }) => {
             </PopoverContent>
           </Popover>
 
-          <div className={cn(playerId || "hidden")}>
+          <div className={cn(playerId ?? "hidden")}>
             <Tabs defaultValue="suggestion">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="suggestion">Suggestion</TabsTrigger>
