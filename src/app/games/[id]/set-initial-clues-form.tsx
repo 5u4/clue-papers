@@ -15,7 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { clues } from "~/data/clues";
+import { cluesWhat, cluesWhere, cluesWho } from "~/data/clues";
 
 interface Props {
   id: string;
@@ -48,7 +48,11 @@ export const SetInitialCluesForm: React.FC<Props> = ({ onSetInitialClues }) => {
               name="items"
               render={() => (
                 <div className="flex justify-center space-x-6">
-                  {Object.entries(clues).map(([type, items]) => (
+                  {Object.entries({
+                    who: cluesWho,
+                    what: cluesWhat,
+                    where: cluesWhere,
+                  }).map(([type, items]) => (
                     <FormItem key={type}>
                       <div className="mb-4">
                         <FormLabel className="text-base capitalize">
@@ -57,34 +61,31 @@ export const SetInitialCluesForm: React.FC<Props> = ({ onSetInitialClues }) => {
                       </div>
                       {items.map((item) => (
                         <FormField
-                          key={item.full}
+                          key={item}
                           control={form.control}
                           name="items"
                           render={({ field }) => {
                             return (
                               <FormItem
-                                key={item.full}
+                                key={item}
                                 className="flex flex-row items-start space-x-3 space-y-0"
                               >
                                 <FormControl>
                                   <Checkbox
-                                    checked={field.value?.includes(item.full)}
+                                    checked={field.value?.includes(item)}
                                     onCheckedChange={(checked) => {
                                       return checked
-                                        ? field.onChange([
-                                            ...field.value,
-                                            item.full,
-                                          ])
+                                        ? field.onChange([...field.value, item])
                                         : field.onChange(
                                             field.value?.filter(
-                                              (value) => value !== item.full,
+                                              (value) => value !== item,
                                             ),
                                           );
                                     }}
                                   />
                                 </FormControl>
-                                <FormLabel className="text-sm font-normal">
-                                  {item.icon} {item.short}
+                                <FormLabel className="text-xs font-normal">
+                                  {item}
                                 </FormLabel>
                               </FormItem>
                             );

@@ -20,11 +20,11 @@ export const InitialCluesGuard: React.FC<PropsWithChildren<Props>> = ({
 
   const setGameInitialClues = useSetAtom(setGameInitialCluesActionAtom);
 
-  if (game?.clueIds === null) {
+  if (game?.clues === null) {
     return (
       <SetInitialCluesForm
         id={id}
-        onSetInitialClues={(clueIds) => setGameInitialClues({ id, clueIds })}
+        onSetInitialClues={(clues) => setGameInitialClues({ id, clues })}
       />
     );
   }

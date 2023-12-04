@@ -38,8 +38,8 @@ export const AddPlayerButton: React.FC<Props> = ({
   const [text, setText] = useState<string>();
 
   const onAddPlayer = (name: string) => {
-    if (players.every((p) => p.name !== name)) {
-      addPlayer({ name: name });
+    if (players.every((p) => p !== name)) {
+      addPlayer(name);
     }
     onAddPlayerName(name);
     setName("");
@@ -70,22 +70,20 @@ export const AddPlayerButton: React.FC<Props> = ({
               <CommandList>
                 <CommandGroup>
                   {[
-                    players.some((p) => p.name === text)
-                      ? undefined
-                      : { name: text },
+                    players.some((p) => p === text) ? undefined : text,
                     ...players,
                   ]
                     .filter(notEmpty)
                     .map((player) => (
                       <CommandItem
                         className={cn(
-                          selectedPlayerNames.some((p) => p === player.name) &&
+                          selectedPlayerNames.some((p) => p === player) &&
                             "opacity-30",
                         )}
-                        key={player.name ?? ""}
-                        value={player.name}
+                        key={player ?? ""}
+                        value={player}
                         onSelect={(value) => {
-                          if (players.some((p) => p.name === value)) {
+                          if (players.some((p) => p === value)) {
                             /** directly add to list if is known player */
                             onAddPlayer(value);
                           } else {
@@ -95,11 +93,9 @@ export const AddPlayerButton: React.FC<Props> = ({
                           setText("");
                           setOpen(false);
                         }}
-                        disabled={selectedPlayerNames.some(
-                          (p) => p === player.name,
-                        )}
+                        disabled={selectedPlayerNames.some((p) => p === player)}
                       >
-                        {player.name}
+                        {player}
                       </CommandItem>
                     ))}
                 </CommandGroup>

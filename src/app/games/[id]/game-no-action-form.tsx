@@ -6,13 +6,13 @@ import { addGameTurnActionAtom, gamesReadOnlyAtom } from "~/data/games-store";
 
 interface Props {
   id: string;
-  playerId: string;
+  player: string;
   onMakeIdle: () => void;
 }
 
 export const GameNoActionForm: React.FC<Props> = ({
   id,
-  playerId,
+  player,
   onMakeIdle,
 }) => {
   const games = useAtomValue(gamesReadOnlyAtom);
@@ -30,7 +30,7 @@ export const GameNoActionForm: React.FC<Props> = ({
             id,
             turn: {
               type: "idle",
-              playerId,
+              player,
               createdAt: new Date(),
             },
           });

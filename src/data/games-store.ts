@@ -3,16 +3,12 @@ import { atom } from "jotai/vanilla";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 
-import {
-  addPlayerActionAtom,
-  playerSchema,
-  playersReadOnlyAtom,
-} from "./players-store";
+import { addPlayerActionAtom, playersReadOnlyAtom } from "./players-store";
 
 export const ANSWER_PLAYER_ID = "-";
 
 const baseTurnSchema = z.object({
-  playerId: z.string(),
+  player: z.string(),
   createdAt: z.coerce.date(),
 });
 
@@ -45,14 +41,14 @@ export const markToDisplay = (mark: MarkSymbol) =>
 
 export const gameSchema = z.object({
   id: z.string(),
-  players: z.array(playerSchema),
-  clueIds: z.array(z.string()).nullable(),
+  players: z.array(z.string()),
+  clues: z.array(z.string()).nullable(),
   turns: z.array(turnSchema),
   marks: z.record(
-    /** clue id */
+    /** clue */
     z.string(),
     z.record(
-      /** player id */
+      /** player */
       z.string(),
       markSymbolSchema,
     ),
@@ -74,27 +70,19 @@ export const createGameActionAtom = atom(
     props = createGamePropsSchema.parse(props);
     const existingPlayers = get(playersReadOnlyAtom);
     const missings = props.names.filter((name) =>
-      existingPlayers.every((p) => p.name !== name),
+      existingPlayers.every((p) => p !== name),
     );
 
     for (const missing of missings) {
-      set(addPlayerActionAtom, { name: missing });
+      set(addPlayerActionAtom, missing);
     }
-
-    const newExistingPlayers = get(playersReadOnlyAtom);
-
-    const players = props.names.map((name) => {
-      const p = newExistingPlayers.find((p) => p.name === name);
-      if (!p) throw new Error(`missing player ${name}`);
-      return p;
-    });
 
     const id = nanoid();
     const game = {
       id,
-      players,
-      clueIds: null,
+      players: props.names,
       marks: {},
+      clues: null,
       turns: [],
       createdAt: new Date(),
     } satisfies Game as Game;
@@ -106,11 +94,11 @@ export const createGameActionAtom = atom(
 
 export const setGameInitialCluesActionAtom = atom(
   null,
-  (_get, set, props: { id: string; clueIds: string[] }) => {
+  (_get, set, props: { id: string; clues: string[] }) => {
     set(gamesAtom, (state) => {
       const game = state.find((g) => g.id === props.id);
       if (!game) throw new Error(`cannot find game ${props.id}`);
-      game.clueIds = props.clueIds;
+      game.clues = props.clues;
       return [...state];
     });
   },
@@ -118,12 +106,12 @@ export const setGameInitialCluesActionAtom = atom(
 
 export const setGameCustomMarkActionAtom = atom(
   null,
-  (get, set, props: { id: string; clueId: string; playerId: string }) => {
+  (get, set, props: { id: string; clue: string; player: string }) => {
     const game = get(gamesAtom).find((g) => g.id === props.id);
     if (!game) throw new Error(`cannot find game ${props.id}`);
 
-    if (!(props.clueId in game.marks)) game.marks[props.clueId] = {};
-    const current = game.marks[props.clueId]![props.playerId] ?? null;
+    if (!(props.clue in game.marks)) game.marks[props.clue] = {};
+    const current = game.marks[props.clue]![props.player] ?? null;
     const next: MarkSymbol =
       current === "yes"
         ? null
@@ -132,7 +120,7 @@ export const setGameCustomMarkActionAtom = atom(
           : current === "?"
             ? "yes"
             : "no";
-    game.marks[props.clueId]![props.playerId] = next;
+    game.marks[props.clue]![props.player] = next;
 
     set(gamesAtom, (state) => [...state]);
   },
@@ -153,32 +141,30 @@ export const addGameTurnActionAtom = atom(
 export const computeMarks = (game: Game) => {
   const marks: Game["marks"] = {};
 
-  const markYes = (clueId: string, playerId: string) => {
+  const markYes = (clueId: string, player: string) => {
     // TODO mark invalid state
     if (!(clueId in marks)) marks[clueId] = {};
     for (const p of game.players) {
-      marks[clueId]![p.id] = p.id === playerId ? "yes" : "no";
+      marks[clueId]![p] = p === player ? "yes" : "no";
     }
     marks[clueId]![ANSWER_PLAYER_ID] =
-      playerId === ANSWER_PLAYER_ID ? "yes" : "no";
+      player === ANSWER_PLAYER_ID ? "yes" : "no";
   };
 
   const markNo = (
-    clueId: string,
-    playerId: string,
-    disprovedPlayerId: string | null,
+    clue: string,
+    player: string,
+    disprovedPlayer: string | null,
   ) => {
     // TODO mark invalid state
-    const playerIndex = game.players.findIndex((p) => p.id === playerId);
+    const playerIndex = game.players.findIndex((p) => p === player);
     if (playerIndex <= -1) {
-      throw new Error(`cannot find player id ${playerId}`);
+      throw new Error(`cannot find player id ${player}`);
     }
 
-    const disprovedIndex = game.players.findIndex(
-      (p) => p.id === disprovedPlayerId,
-    );
-    if (disprovedPlayerId !== null && disprovedIndex <= -1) {
-      throw new Error(`cannot find disprove player id ${disprovedPlayerId}`);
+    const disprovedIndex = game.players.findIndex((p) => p === disprovedPlayer);
+    if (disprovedPlayer !== null && disprovedIndex <= -1) {
+      throw new Error(`cannot find disprove player id ${disprovedPlayer}`);
     }
 
     const startIndex = (playerIndex + 1) % game.players.length;
@@ -190,18 +176,18 @@ export const computeMarks = (game: Game) => {
     const endIndex =
       _endIndex < startIndex ? _endIndex + game.players.length : _endIndex;
 
-    if (!(clueId in marks)) marks[clueId] = {};
+    if (!(clue in marks)) marks[clue] = {};
 
     for (let i = startIndex; i <= endIndex; i++) {
-      const pid = game.players.at(i % game.players.length)?.id;
-      if (pid) marks[clueId]![pid] = "no";
+      const pid = game.players.at(i % game.players.length);
+      if (pid) marks[clue]![pid] = "no";
     }
   };
 
   // mark initials
-  const playerId = game.players.at(0)!.id;
-  for (const clueId of game.clueIds ?? []) {
-    markYes(clueId, playerId);
+  const player = game.players.at(0)!;
+  for (const clue of game.clues ?? []) {
+    markYes(clue, player);
     // TODO mark player other clues 'no'
   }
 
@@ -210,15 +196,15 @@ export const computeMarks = (game: Game) => {
       /**
        * mark all undisproved suggestions no
        */
-      for (const clueId of turn.suggestions) {
-        markNo(clueId, turn.playerId, turn.disproved?.player ?? null);
+      for (const clue of turn.suggestions) {
+        markNo(clue, turn.player, turn.disproved?.player ?? null);
         // TODO mark question on empty cells
       }
 
       /**
        * self turn, suggested clues been disproved by others and you see the clue
        */
-      if (turn.playerId === playerId && turn.disproved?.clue) {
+      if (turn.player === player && turn.disproved?.clue) {
         markYes(turn.disproved.clue, turn.disproved.player);
       }
     }

@@ -53,11 +53,7 @@ const Inner: React.FC<{ id: string }> = ({ id }) => {
         </TabsList>
 
         <TabsContent value="note">
-          <GameNoteTable
-            id={id}
-            clues={[...clues.who, ...clues.what, ...clues.where]}
-            marks={marks}
-          />
+          <GameNoteTable id={id} clues={clues} marks={marks} />
         </TabsContent>
         <TabsContent value="history">
           <GameHistories id={id} marks={marks} />

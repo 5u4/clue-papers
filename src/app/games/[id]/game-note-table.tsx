@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { type Clue } from "~/data/clues";
 import {
   ANSWER_PLAYER_ID,
   gamesReadOnlyAtom,
@@ -22,7 +21,7 @@ import { cn } from "~/utils/ui";
 
 interface Props {
   id: string;
-  clues: Clue[];
+  clues: string[];
   marks: Game["marks"];
   displayClueIds?: Set<string> | undefined;
 }
@@ -31,10 +30,7 @@ export const GameNoteTable: React.FC<Props> = ({
   id,
   clues,
   marks,
-  displayClueIds = new Set([
-    ANSWER_PLAYER_ID,
-    ...clues.map((clue) => clue.full),
-  ]),
+  displayClueIds = new Set([ANSWER_PLAYER_ID, ...clues]),
 }) => {
   const games = useAtomValue(gamesReadOnlyAtom);
   const game = games.find((g) => g.id === id);
@@ -51,44 +47,42 @@ export const GameNoteTable: React.FC<Props> = ({
             <TableHead className="min-w-[42px]"></TableHead>
             {game.players.map((player) => (
               <TableHead
-                key={player.id}
+                key={player}
                 className="text-center text-xs px-0.5 min-w-[42px]"
               >
-                {player.name}
+                {player}
               </TableHead>
             ))}
           </TableRow>
         </TableHeader>
         <TableBody>
           {clues
-            .filter((clue) => displayClueIds.has(clue.full))
+            .filter((clue) => displayClueIds.has(clue))
             .map((clue) => {
-              const ansMark = marks[clue.full]?.[ANSWER_PLAYER_ID];
+              const ansMark = marks[clue]?.[ANSWER_PLAYER_ID];
               return (
-                <TableRow key={clue.full}>
+                <TableRow key={clue}>
                   <TableCell
                     className={cn(
                       "text-center py-1 px-0.5 text-xs",
                       ansMark && "bg-green-100",
                     )}
                   >
-                    {clue.icon}
-                    <br />
-                    {clue.short}
+                    {clue}
                   </TableCell>
                   <NoteCell
                     id={id}
                     marks={marks}
-                    clueId={clue.full}
-                    playerId={ANSWER_PLAYER_ID}
+                    clue={clue}
+                    player={ANSWER_PLAYER_ID}
                   />
                   {Array.from({ length: game.players.length }).map((_, i) => {
                     return (
                       <NoteCell
                         id={id}
                         marks={marks}
-                        clueId={clue.full}
-                        playerId={game.players[i]!.id}
+                        clue={clue}
+                        player={game.players[i]!}
                         key={i}
                       />
                     );
@@ -105,15 +99,15 @@ export const GameNoteTable: React.FC<Props> = ({
 const NoteCell: React.FC<{
   id: string;
   marks: Game["marks"];
-  clueId: string;
-  playerId: string;
-}> = ({ id, marks, clueId, playerId }) => {
+  clue: string;
+  player: string;
+}> = ({ id, marks, clue, player }) => {
   const games = useAtomValue(gamesReadOnlyAtom);
   const game = games.find((g) => g.id === id);
   if (!game) throw new Error(`cannot find game ${id}`);
 
-  const mark = marks[clueId]?.[playerId];
-  const customMark = game.marks[clueId]?.[playerId];
+  const mark = marks[clue]?.[player];
+  const customMark = game.marks[clue]?.[player];
 
   const setGameCustomMark = useSetAtom(setGameCustomMarkActionAtom);
 
@@ -124,7 +118,7 @@ const NoteCell: React.FC<{
         variant="link"
         size="icon"
         onClick={() => {
-          setGameCustomMark({ id: game.id, clueId, playerId });
+          setGameCustomMark({ id: game.id, clue, player });
         }}
       >
         {markToDisplay(mark ?? customMark ?? null)}

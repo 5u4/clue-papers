@@ -1,24 +1,18 @@
 import React, { useState } from "react";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useAtomValue } from "jotai/react";
 
 import { GameAccusationForm } from "~/app/games/[id]/game-accusation-form";
 import { GameNoActionForm } from "~/app/games/[id]/game-no-action-form";
 import { GameSuggestionForm } from "~/app/games/[id]/game-suggestion-form";
 import { Button } from "~/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "~/components/ui/command";
 import { Label } from "~/components/ui/label";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -42,21 +36,16 @@ export const GameNextActionSheet: React.FC<Props> = ({ id }) => {
   const [sheetOpen, _setSheetOpen] = useState(false);
   const setSheetOpen = (v: boolean) => {
     const pid = (() => {
-      const lastPlayerId = game.turns.at(-1)?.playerId;
-      if (!lastPlayerId) return null;
-      const lastPlayerIdx = game.players.findIndex(
-        (p) => p.id === lastPlayerId,
-      );
-      return (
-        game.players.at((lastPlayerIdx + 1) % game.players.length)?.id ?? null
-      );
+      const lastPlayer = game.turns.at(-1)?.player;
+      if (!lastPlayer) return null;
+      const lastPlayerIdx = game.players.findIndex((p) => p === lastPlayer);
+      return game.players.at((lastPlayerIdx + 1) % game.players.length) ?? null;
     })();
 
-    setPlayerId(pid);
+    setPlayer(pid);
     _setSheetOpen(v);
   };
-  const [cmdOpen, setCmdOpen] = useState(false);
-  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [player, setPlayer] = useState<string | null>(null);
 
   return (
     <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -77,51 +66,20 @@ export const GameNextActionSheet: React.FC<Props> = ({ id }) => {
           </SheetHeader>
 
           <Label>Player</Label>
-          <Popover open={cmdOpen} onOpenChange={setCmdOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={cmdOpen}
-                className="w-[200px] justify-between"
-              >
-                {playerId
-                  ? game.players.find((player) => player.id === playerId)?.name
-                  : "Select player..."}
-                <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
-              <Command>
-                <CommandInput placeholder="Search player..." className="h-9" />
-                <CommandEmpty>No player found.</CommandEmpty>
-                <CommandGroup>
-                  {game.players.map((player) => (
-                    <CommandItem
-                      key={player.id}
-                      value={player.name}
-                      onSelect={(currentValue) => {
-                        setPlayerId(
-                          currentValue === player.id ? null : player.id,
-                        );
-                        setCmdOpen(false);
-                      }}
-                    >
-                      {player.name}
-                      <CheckIcon
-                        className={cn(
-                          "ml-auto h-4 w-4",
-                          playerId === player.id ? "opacity-100" : "opacity-0",
-                        )}
-                      />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <Select value={player ?? undefined} onValueChange={setPlayer}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select player" />
+            </SelectTrigger>
+            <SelectContent>
+              {game.players.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <div className={cn(playerId ?? "hidden")}>
+          <div className={cn(player ?? "hidden")}>
             <Tabs defaultValue="suggestion">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="suggestion">Suggestion</TabsTrigger>
@@ -132,21 +90,21 @@ export const GameNextActionSheet: React.FC<Props> = ({ id }) => {
               <TabsContent value="suggestion">
                 <GameSuggestionForm
                   id={id}
-                  playerId={playerId!}
+                  player={player!}
                   onMakeSuggestion={() => setSheetOpen(false)}
                 />
               </TabsContent>
               <TabsContent value="idle">
                 <GameNoActionForm
                   id={id}
-                  playerId={playerId!}
+                  player={player!}
                   onMakeIdle={() => setSheetOpen(false)}
                 />
               </TabsContent>
               <TabsContent value="accusation">
                 <GameAccusationForm
                   id={id}
-                  playerId={playerId!}
+                  player={player!}
                   onMakeAccusation={() => setSheetOpen(false)}
                 />
               </TabsContent>
