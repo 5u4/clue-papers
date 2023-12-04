@@ -2,13 +2,17 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { DotsVerticalIcon } from "@radix-ui/react-icons";
+import {
+  CopyIcon,
+  DotsVerticalIcon,
+  ResumeIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 import { useAtomValue, useSetAtom } from "jotai/react";
 import TimeAgo from "timeago-react";
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogFooter,
@@ -70,11 +74,15 @@ export const GameList: React.FC = () => {
                           <DropdownMenuItem
                             onClick={() => router.push(`/games/${game.id}`)}
                           >
+                            <ResumeIcon className="mr-2" />
                             Continue
                           </DropdownMenuItem>
                           <CloneGameDropDownItem id={game.id} />
                           <AlertDialogTrigger asChild>
-                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive focus:text-destructive-foreground focus:bg-destructive">
+                              <TrashIcon className="mr-2" />
+                              Delete
+                            </DropdownMenuItem>
                           </AlertDialogTrigger>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
@@ -88,9 +96,12 @@ export const GameList: React.FC = () => {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => deleteGame(game.id)}>
+                        <Button
+                          variant="destructive"
+                          onClick={() => deleteGame(game.id)}
+                        >
                           Delete
-                        </AlertDialogAction>
+                        </Button>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
@@ -112,6 +123,7 @@ const CloneGameDropDownItem: React.FC<{ id: string }> = ({ id }) => {
 
   return (
     <DropdownMenuItem onClick={() => setNames(game.players)}>
+      <CopyIcon className="mr-2" />
       Clone
     </DropdownMenuItem>
   );

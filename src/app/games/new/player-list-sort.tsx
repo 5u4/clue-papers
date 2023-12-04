@@ -87,7 +87,7 @@ const SortableItem: React.FC<{ name: string; onDelete: () => void }> = ({
 
   return (
     <div
-      className="w-full p-2 flex items-center justify-between rounded-md border bg-white"
+      className="w-full pl-3 pr-2 py-2 flex items-center justify-between rounded-md border bg-white"
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(transform),
