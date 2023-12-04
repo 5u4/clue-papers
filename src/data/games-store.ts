@@ -31,6 +31,7 @@ export const turnSchema = z.discriminatedUnion("type", [
     success: z.boolean(),
   }),
 ]);
+type Turn = z.infer<typeof turnSchema>;
 
 const markSymbolSchema = z.union([
   z.literal("no"),
@@ -60,7 +61,9 @@ export const gameSchema = z.object({
 });
 export type Game = z.infer<typeof gameSchema>;
 
-const gamesAtom = atomWithStorage<Game[]>("games", []);
+const gamesAtom = atomWithStorage<Game[]>("games", [], undefined, {
+  getOnInit: true,
+});
 
 export const gamesReadOnlyAtom = atom((get) => get(gamesAtom));
 
@@ -135,6 +138,18 @@ export const setGameCustomMarkActionAtom = atom(
   },
 );
 
+export const addGameTurnActionAtom = atom(
+  null,
+  (get, set, props: { id: string; turn: Turn }) => {
+    const game = get(gamesAtom).find((g) => g.id === props.id);
+    if (!game) throw new Error(`cannot find game ${props.id}`);
+
+    game.turns.push({ ...props.turn });
+
+    set(gamesAtom, (state) => [...state]);
+  },
+);
+
 export const computeMarks = (game: Game) => {
   const marks: Game["marks"] = {};
 
@@ -144,7 +159,8 @@ export const computeMarks = (game: Game) => {
     for (const p of game.players) {
       marks[clueId]![p.id] = p.id === playerId ? "yes" : "no";
     }
-    marks[clueId]![ANSWER_PLAYER_ID] = "no";
+    marks[clueId]![ANSWER_PLAYER_ID] =
+      playerId === ANSWER_PLAYER_ID ? "yes" : "no";
   };
 
   const markNo = (
@@ -167,18 +183,18 @@ export const computeMarks = (game: Game) => {
 
     const startIndex = (playerIndex + 1) % game.players.length;
     const _endIndex =
-      disprovedIndex > -1
-        ? disprovedIndex
-        : (playerIndex + game.players.length - 1) % game.players.length;
+      ((disprovedIndex > -1 ? disprovedIndex : playerIndex) +
+        game.players.length -
+        1) %
+      game.players.length;
     const endIndex =
       _endIndex < startIndex ? _endIndex + game.players.length : _endIndex;
 
     if (!(clueId in marks)) marks[clueId] = {};
-    let i = startIndex;
-    while (true) {
-      marks[clueId]![i % game.players.length] = "no";
-      if (i === endIndex) break;
-      i++;
+
+    for (let i = startIndex; i <= endIndex; i++) {
+      const pid = game.players.at(i % game.players.length)?.id!;
+      marks[clueId]![pid] = "no";
     }
   };
 
@@ -190,21 +206,29 @@ export const computeMarks = (game: Game) => {
   }
 
   for (const turn of game.turns) {
-    if (turn.type !== "suggestion") continue; // only suggestion can 100% infer
+    if (turn.type === "suggestion") {
+      /**
+       * mark all undisproved suggestions no
+       */
+      for (const clueId of turn.suggestions) {
+        markNo(clueId, turn.playerId, turn.disproved?.player ?? null);
+        // TODO mark question on empty cells
+      }
 
-    /**
-     * mark all undisproved suggestions no
-     */
-    for (const clueId of turn.suggestions) {
-      // markNo(clueId, turn.player, turn.disproved?.player ?? null);
-      // TODO mark question on empty cells
+      /**
+       * self turn, suggested clues been disproved by others and you see the clue
+       */
+      if (turn.playerId === playerId && turn.disproved?.clue) {
+        markYes(turn.disproved.clue, turn.disproved.player);
+      }
     }
 
-    /**
-     * self turn, suggested clues been disproved by others and you see the clue
-     */
-    if (turn.playerId === playerId && turn.disproved?.clue) {
-      markYes(turn.disproved.clue, turn.disproved.player);
+    if (turn.type === "accusation") {
+      if (turn.success) {
+        for (const clue of turn.accusations) {
+          markYes(clue, ANSWER_PLAYER_ID);
+        }
+      }
     }
   }
 

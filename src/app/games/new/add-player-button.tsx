@@ -51,7 +51,11 @@ export const AddPlayerButton: React.FC<Props> = ({
       <div className="flex flex-row space-x-2 items-center justify-between">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full">
+            <Button
+              variant="outline"
+              className="w-full"
+              disabled={selectedPlayerNames.length >= 6}
+            >
               {name ? <>{name}</> : <>+ Player</>}
             </Button>
           </PopoverTrigger>
@@ -105,7 +109,11 @@ export const AddPlayerButton: React.FC<Props> = ({
         </Popover>
 
         <Button
-          disabled={!name || selectedPlayerNames.some((p) => p === name)}
+          disabled={
+            !name ||
+            selectedPlayerNames.some((p) => p === name) ||
+            selectedPlayerNames.length >= 6
+          }
           onClick={() => onAddPlayer(name!)}
         >
           Add Player

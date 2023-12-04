@@ -10,7 +10,9 @@ export const playerSchema = z.object({
 
 export type Player = z.infer<typeof playerSchema>;
 
-const playersAtom = atomWithStorage<Player[]>("players", []);
+const playersAtom = atomWithStorage<Player[]>("players", [], undefined, {
+  getOnInit: true,
+});
 
 export const playersReadOnlyAtom = atom((get) => get(playersAtom));
 
