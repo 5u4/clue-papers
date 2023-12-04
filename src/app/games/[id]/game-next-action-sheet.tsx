@@ -63,11 +63,9 @@ export const GameNextActionSheet: React.FC<Props> = ({ id }) => {
       <SheetTrigger asChild>
         <Button
           className="w-full"
-          disabled={(() => {
-            const lastTurn = game.turns.at(-1);
-            if (!lastTurn) return false;
-            return lastTurn.type === "accusation" && lastTurn.success;
-          })()}
+          disabled={game.turns.some(
+            (turn) => turn.type === "accusation" && turn.success,
+          )}
         >
           Next
         </Button>
