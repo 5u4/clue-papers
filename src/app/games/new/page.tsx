@@ -7,6 +7,7 @@ import { AddPlayerButton } from "~/app/games/new/add-player-button";
 import { PlayerListSort } from "~/app/games/new/player-list-sort";
 import { ClientOnly } from "~/components/client-only";
 import { H1 } from "~/components/h1";
+import { Nav } from "~/components/nav";
 import { Button } from "~/components/ui/button";
 import { createGameActionAtom } from "~/data/games-store";
 import { useNewGame } from "~/data/use-new-game";
@@ -14,8 +15,9 @@ import { useNewGame } from "~/data/use-new-game";
 export default function Page() {
   return (
     <>
-      <H1 className="text-center">New Game</H1>
-      <div className="h-6" />
+      <Nav>
+        <H1>New Game</H1>
+      </Nav>
 
       <ClientOnly>
         <Inner />

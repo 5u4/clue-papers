@@ -10,6 +10,7 @@ import { InitialCluesGuard } from "~/app/games/[id]/initial-clues-guard";
 import { CloneGameButton } from "~/app/games/clone-game-button";
 import { ClientOnly } from "~/components/client-only";
 import { H1 } from "~/components/h1";
+import { Nav } from "~/components/nav";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { clues } from "~/data/clues";
 import { computeMarks, gamesReadOnlyAtom } from "~/data/games-store";
@@ -17,8 +18,9 @@ import { computeMarks, gamesReadOnlyAtom } from "~/data/games-store";
 export default function Page({ params: { id } }: { params: { id: string } }) {
   return (
     <>
-      <H1 className="text-center">Game {id.slice(0, 6)}</H1>
-      <div className="h-6" />
+      <Nav>
+        <H1>Game {id}</H1>
+      </Nav>
 
       <ClientOnly>
         <Guards id={id} />

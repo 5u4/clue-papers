@@ -39,7 +39,9 @@ export const SetInitialCluesForm: React.FC<Props> = ({ onSetInitialClues }) => {
   return (
     <div className="p-2 grid place-items-center">
       <div className="max-w-xl w-full">
-        <h2 className="pb-2 text-center">Select the initial clues you have</h2>
+        <h2 className="pb-2 text-center text-sm text-muted-foreground">
+          Select the initial clues you have
+        </h2>
 
         <Form {...form}>
           <form onSubmit={onSubmit} className="space-y-8">
@@ -47,7 +49,7 @@ export const SetInitialCluesForm: React.FC<Props> = ({ onSetInitialClues }) => {
               control={form.control}
               name="items"
               render={() => (
-                <div className="flex justify-center space-x-6">
+                <div className="flex justify-between space-x-6">
                   {Object.entries({
                     who: cluesWho,
                     what: cluesWhat,

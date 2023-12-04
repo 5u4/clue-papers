@@ -1,6 +1,6 @@
 import { atomWithStorage } from "jotai/utils";
 import { atom } from "jotai/vanilla";
-import { nanoid } from "nanoid";
+import { customAlphabet } from "nanoid";
 import { z } from "zod";
 
 import { addPlayerActionAtom, playersReadOnlyAtom } from "./players-store";
@@ -61,7 +61,9 @@ const gamesAtom = atomWithStorage<Game[]>("games", [], undefined, {
   getOnInit: true,
 });
 
-export const gamesReadOnlyAtom = atom((get) => get(gamesAtom));
+export const gamesReadOnlyAtom = atom((get) =>
+  z.array(gameSchema).parse(get(gamesAtom)),
+);
 
 const createGamePropsSchema = z.object({ names: z.array(z.string()).min(2) });
 export const createGameActionAtom = atom(
@@ -77,7 +79,14 @@ export const createGameActionAtom = atom(
       set(addPlayerActionAtom, missing);
     }
 
-    const id = nanoid();
+    const games = get(gamesAtom);
+    let id: string | null = null;
+    // avoid id collision
+    while (true) {
+      id = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6)();
+      if (games.every((g) => g.id !== id)) break;
+    }
+
     const game = {
       id,
       players: props.names,
@@ -137,6 +146,10 @@ export const addGameTurnActionAtom = atom(
     set(gamesAtom, (state) => [...state]);
   },
 );
+
+export const deleteGameActionAtom = atom(null, (_get, set, id: string) => {
+  set(gamesAtom, (state) => state.filter((g) => g.id !== id));
+});
 
 export const computeMarks = (game: Game) => {
   const marks: Game["marks"] = {};
