@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useMemo, type PropsWithChildren } from "react";
+import React, { type PropsWithChildren } from "react";
 import Link from "next/link";
 import { useAtomValue } from "jotai/react";
 
 import { Button } from "~/components/ui/button";
-import { createGameAtom } from "~/data/games-store";
+import { gamesReadOnlyAtom } from "~/data/games-store";
 
 interface Props {
   id: string;
@@ -15,8 +15,8 @@ export const GameGuard: React.FC<PropsWithChildren<Props>> = ({
   id,
   children,
 }) => {
-  const a = useMemo(() => createGameAtom(id), [id]);
-  const game = useAtomValue(a);
+  const games = useAtomValue(gamesReadOnlyAtom);
+  const game = games.find((g) => g.id === id);
 
   if (!game) {
     return (

@@ -60,9 +60,9 @@ export const gameSchema = z.object({
 });
 export type Game = z.infer<typeof gameSchema>;
 
-const gameIdsAtom = atomWithStorage<string[]>("games", []);
+const gamesAtom = atomWithStorage<Game[]>("games", []);
 
-export const gamesIdsReadOnlyAtom = atom((get) => get(gameIdsAtom));
+export const gamesReadOnlyAtom = atom((get) => get(gamesAtom));
 
 const createGamePropsSchema = z.object({ names: z.array(z.string()).min(2) });
 export const createGameActionAtom = atom(
@@ -95,26 +95,118 @@ export const createGameActionAtom = atom(
       turns: [],
       createdAt: new Date(),
     } satisfies Game as Game;
-    const gameAtom = createGameAtom(id, game);
-    set(gameAtom, game);
+
+    set(gamesAtom, (state) => [...state, game]);
     return id;
   },
 );
 
-export const createGameAtom = (
-  id: string,
-  initial?: z.infer<typeof gameSchema> | undefined,
-) =>
-  atomWithStorage<Game | null>(`game-${id}`, initial ?? null, undefined, {
-    getOnInit: true,
-  });
-
 export const setGameInitialCluesActionAtom = atom(
   null,
-  (get, set, props: { id: string; clueIds: string[] }) => {
-    const a = createGameAtom(props.id);
-    const game = get(a);
-    if (!game) throw new Error(`missing game ${props.id}`);
-    set(a, { ...game, clueIds: props.clueIds });
+  (_get, set, props: { id: string; clueIds: string[] }) => {
+    set(gamesAtom, (state) => {
+      const game = state.find((g) => g.id === props.id);
+      if (!game) throw new Error(`cannot find game ${props.id}`);
+      game.clueIds = props.clueIds;
+      return [...state];
+    });
   },
 );
+
+export const setGameCustomMarkActionAtom = atom(
+  null,
+  (get, set, props: { id: string; clueId: string; playerId: string }) => {
+    const game = get(gamesAtom).find((g) => g.id === props.id);
+    if (!game) throw new Error(`cannot find game ${props.id}`);
+
+    if (!(props.clueId in game.marks)) game.marks[props.clueId] = {};
+    const current = game.marks[props.clueId]![props.playerId] ?? null;
+    const next: MarkSymbol =
+      current === "yes"
+        ? null
+        : current === "no"
+          ? "?"
+          : current === "?"
+            ? "yes"
+            : "no";
+    game.marks[props.clueId]![props.playerId] = next;
+
+    set(gamesAtom, (state) => [...state]);
+  },
+);
+
+export const computeMarks = (game: Game) => {
+  const marks: Game["marks"] = {};
+
+  const markYes = (clueId: string, playerId: string) => {
+    // TODO mark invalid state
+    if (!(clueId in marks)) marks[clueId] = {};
+    for (const p of game.players) {
+      marks[clueId]![p.id] = p.id === playerId ? "yes" : "no";
+    }
+    marks[clueId]![ANSWER_PLAYER_ID] = "no";
+  };
+
+  const markNo = (
+    clueId: string,
+    playerId: string,
+    disprovedPlayerId: string | null,
+  ) => {
+    // TODO mark invalid state
+    const playerIndex = game.players.findIndex((p) => p.id === playerId);
+    if (playerIndex <= -1) {
+      throw new Error(`cannot find player id ${playerId}`);
+    }
+
+    const disprovedIndex = game.players.findIndex(
+      (p) => p.id === disprovedPlayerId,
+    );
+    if (disprovedPlayerId !== null && disprovedIndex <= -1) {
+      throw new Error(`cannot find disprove player id ${disprovedPlayerId}`);
+    }
+
+    const startIndex = (playerIndex + 1) % game.players.length;
+    const _endIndex =
+      disprovedIndex > -1
+        ? disprovedIndex
+        : (playerIndex + game.players.length - 1) % game.players.length;
+    const endIndex =
+      _endIndex < startIndex ? _endIndex + game.players.length : _endIndex;
+
+    if (!(clueId in marks)) marks[clueId] = {};
+    let i = startIndex;
+    while (true) {
+      marks[clueId]![i % game.players.length] = "no";
+      if (i === endIndex) break;
+      i++;
+    }
+  };
+
+  // mark initials
+  const playerId = game.players.at(0)!.id;
+  for (const clueId of game.clueIds ?? []) {
+    markYes(clueId, playerId);
+    // TODO mark player other clues 'no'
+  }
+
+  for (const turn of game.turns) {
+    if (turn.type !== "suggestion") continue; // only suggestion can 100% infer
+
+    /**
+     * mark all undisproved suggestions no
+     */
+    for (const clueId of turn.suggestions) {
+      // markNo(clueId, turn.player, turn.disproved?.player ?? null);
+      // TODO mark question on empty cells
+    }
+
+    /**
+     * self turn, suggested clues been disproved by others and you see the clue
+     */
+    if (turn.playerId === playerId && turn.disproved?.clue) {
+      markYes(turn.disproved.clue, turn.disproved.player);
+    }
+  }
+
+  return marks;
+};

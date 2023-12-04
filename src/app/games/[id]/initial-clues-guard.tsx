@@ -1,10 +1,9 @@
-import React, { useMemo, type PropsWithChildren } from "react";
+import React, { type PropsWithChildren } from "react";
 import { useAtomValue, useSetAtom } from "jotai/react";
-import { atom } from "jotai/vanilla";
 
 import { SetInitialCluesForm } from "~/app/games/[id]/set-initial-clues-form";
 import {
-  createGameAtom,
+  gamesReadOnlyAtom,
   setGameInitialCluesActionAtom,
 } from "~/data/games-store";
 
@@ -16,15 +15,12 @@ export const InitialCluesGuard: React.FC<PropsWithChildren<Props>> = ({
   id,
   children,
 }) => {
-  const a = useMemo(() => createGameAtom(id), [id]);
-  const clueIdsAtom = useMemo(
-    () => atom((get) => get(a)?.clueIds ?? null),
-    [a],
-  );
-  const clueIds = useAtomValue(clueIdsAtom);
+  const games = useAtomValue(gamesReadOnlyAtom);
+  const game = games.find((g) => g.id === id);
+
   const setGameInitialClues = useSetAtom(setGameInitialCluesActionAtom);
 
-  if (clueIds === null) {
+  if (game?.clueIds === null) {
     return (
       <SetInitialCluesForm
         id={id}
