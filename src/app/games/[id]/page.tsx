@@ -7,6 +7,7 @@ import { GameHistories } from "~/app/games/[id]/game-histories";
 import { GameNextActionSheet } from "~/app/games/[id]/game-next-action-sheet";
 import { GameNoteTable } from "~/app/games/[id]/game-note-table";
 import { InitialCluesGuard } from "~/app/games/[id]/initial-clues-guard";
+import { CloneGameButton } from "~/app/games/clone-game-button";
 import { ClientOnly } from "~/components/client-only";
 import { H1 } from "~/components/h1";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -45,6 +46,7 @@ const Inner: React.FC<{ id: string }> = ({ id }) => {
 
   return (
     <div className="flex flex-col space-y-4">
+      <CloneGameButton id={id}>New Game</CloneGameButton>
       <GameNextActionSheet id={id} />
       <Tabs defaultValue="note">
         <TabsList className="grid w-full grid-cols-2">

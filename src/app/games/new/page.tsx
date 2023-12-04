@@ -1,9 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSetAtom } from "jotai/react";
-import { z } from "zod";
 
 import { AddPlayerButton } from "~/app/games/new/add-player-button";
 import { PlayerListSort } from "~/app/games/new/player-list-sort";
@@ -11,8 +9,7 @@ import { ClientOnly } from "~/components/client-only";
 import { H1 } from "~/components/h1";
 import { Button } from "~/components/ui/button";
 import { createGameActionAtom } from "~/data/games-store";
-
-const GAME_PLAYERS_KEY = "p";
+import { useNewGame } from "~/data/use-new-game";
 
 export default function Page() {
   return (
@@ -28,49 +25,30 @@ export default function Page() {
 }
 
 const Inner = () => {
+  const { names, setNames } = useNewGame();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-
-  const gamePlayerNames = useMemo(() => {
-    const raw = searchParams.get(GAME_PLAYERS_KEY);
-    try {
-      return z.array(z.string()).parse(JSON.parse(raw ?? "[]"));
-    } catch (e) {
-      return [];
-    }
-  }, [searchParams]);
-
-  const setGamePlayerNames = (names: string[]) => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set(GAME_PLAYERS_KEY, JSON.stringify(names));
-    router.push(pathname + "?" + newParams.toString());
-  };
 
   const createGame = useSetAtom(createGameActionAtom);
 
   const startGame = () => {
-    const gameId = createGame({ names: gamePlayerNames });
+    const gameId = createGame({ names });
     router.push(`/games/${gameId}`);
   };
 
   return (
     <div className="flex flex-col space-y-4">
       <AddPlayerButton
-        selectedPlayerNames={gamePlayerNames}
+        selectedPlayerNames={names}
         onAddPlayerName={(name) => {
-          setGamePlayerNames(Array.from(new Set([...gamePlayerNames, name])));
+          setNames(Array.from(new Set([...names, name])));
         }}
       />
 
-      <PlayerListSort
-        playerNames={gamePlayerNames}
-        setPlayerNameOrder={setGamePlayerNames}
-      />
+      <PlayerListSort playerNames={names} setPlayerNameOrder={setNames} />
 
       <Button
         className="w-full"
-        disabled={gamePlayerNames.length < 2}
+        disabled={names.length < 2}
         onClick={startGame}
       >
         Start Game
