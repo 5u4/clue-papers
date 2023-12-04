@@ -23,14 +23,14 @@ interface Props {
   id: string;
   clues: string[];
   marks: Game["marks"];
-  displayClueIds?: Set<string> | undefined;
+  displayClues?: Set<string> | undefined;
 }
 
 export const GameNoteTable: React.FC<Props> = ({
   id,
   clues,
   marks,
-  displayClueIds = new Set([ANSWER_PLAYER_ID, ...clues]),
+  displayClues = new Set([ANSWER_PLAYER_ID, ...clues]),
 }) => {
   const games = useAtomValue(gamesReadOnlyAtom);
   const game = games.find((g) => g.id === id);
@@ -57,7 +57,7 @@ export const GameNoteTable: React.FC<Props> = ({
         </TableHeader>
         <TableBody>
           {clues
-            .filter((clue) => displayClueIds.has(clue))
+            .filter((clue) => displayClues.has(clue))
             .map((clue) => {
               const ansMark = marks[clue]?.[ANSWER_PLAYER_ID];
               return (

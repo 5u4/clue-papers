@@ -3,7 +3,6 @@ import { useAtomValue } from "jotai/react";
 import TimeAgo from "timeago-react";
 
 import { GameNoteTable } from "~/app/games/[id]/game-note-table";
-import { clues } from "~/data/clues";
 import { gamesReadOnlyAtom, type Game, type Turn } from "~/data/games-store";
 
 interface Props {
@@ -43,7 +42,7 @@ const TurnInfo: React.FC<{ game: Game; turn: Turn; marks: Game["marks"] }> = ({
   const player = game.players.find((p) => p === turn.player);
   if (!player) throw new Error(`cannot find player ${turn.player}`);
 
-  const clueIds =
+  const clues =
     turn.type === "accusation"
       ? turn.accusations
       : turn.type === "suggestion"
@@ -56,12 +55,14 @@ const TurnInfo: React.FC<{ game: Game; turn: Turn; marks: Game["marks"] }> = ({
         <p>
           <Explaination turn={turn} />
         </p>
-        <GameNoteTable
-          id={game.id}
-          clues={clues}
-          marks={marks}
-          displayClueIds={new Set(clueIds)}
-        />
+        {clues.length > 0 && (
+          <GameNoteTable
+            id={game.id}
+            clues={clues}
+            marks={marks}
+            displayClues={new Set(clues)}
+          />
+        )}
         <TimeAgo
           className="text-sm text-muted-foreground"
           datetime={turn.createdAt}
