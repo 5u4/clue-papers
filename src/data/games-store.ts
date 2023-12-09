@@ -248,3 +248,64 @@ export const computeMarks = (game: Game) => {
 
   return marks;
 };
+
+type Counter = { clue: string; player: string };
+export const isTurnValid = (
+  marks: Game["marks"],
+  game: Game,
+  turn: Turn,
+): true | Counter => {
+  if (turn.type === "idle") return true;
+
+  if (turn.type === "accusation") {
+    if (!turn.success) return true;
+
+    for (const accusation of turn.accusations) {
+      for (const player of game.players) {
+        if (marks[accusation]?.[player] === "yes") {
+          return { clue: accusation, player };
+        }
+      }
+    }
+
+    return true;
+  }
+
+  if (turn.type === "suggestion") {
+    const playerIndex = game.players.findIndex((p) => p === turn.player);
+    if (playerIndex <= -1) {
+      throw new Error(`cannot find player id ${turn.player}`);
+    }
+
+    const disprovedIndex = game.players.findIndex(
+      (p) => p === turn.disproved?.player,
+    );
+    if (!turn.disproved?.player && disprovedIndex <= -1) {
+      throw new Error(
+        `cannot find disprove player id ${turn.disproved?.player}`,
+      );
+    }
+
+    const startIndex = (playerIndex + 1) % game.players.length;
+    const _endIndex =
+      ((disprovedIndex > -1 ? disprovedIndex : playerIndex) +
+        game.players.length -
+        1) %
+      game.players.length;
+    const endIndex =
+      _endIndex < startIndex ? _endIndex + game.players.length : _endIndex;
+
+    for (const suggestion of turn.suggestions) {
+      for (let i = startIndex; i <= endIndex; i++) {
+        const pid = game.players.at(i % game.players.length);
+        if (pid && marks[suggestion]?.[pid] === "yes") {
+          return { clue: suggestion, player: pid };
+        }
+      }
+    }
+
+    return true;
+  }
+
+  throw new Error("unhandled");
+};
