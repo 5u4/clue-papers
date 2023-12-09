@@ -1,9 +1,25 @@
 import React from "react";
-import { useAtomValue } from "jotai/react";
+import { TrashIcon } from "@radix-ui/react-icons";
+import { useAtomValue, useSetAtom } from "jotai/react";
 import TimeAgo from "timeago-react";
 
 import { GameNoteTable } from "~/app/games/[id]/game-note-table";
-import { gamesReadOnlyAtom, type Game, type Turn } from "~/data/games-store";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
+import { Button } from "~/components/ui/button";
+import {
+  deleteGameTurnActionAtom,
+  gamesReadOnlyAtom,
+  type Game,
+  type Turn,
+} from "~/data/games-store";
 
 interface Props {
   id: string;
@@ -39,6 +55,7 @@ const TurnInfo: React.FC<{ game: Game; turn: Turn; marks: Game["marks"] }> = ({
   game,
   marks,
 }) => {
+  const deleteGameTurn = useSetAtom(deleteGameTurnActionAtom);
   const player = game.players.find((p) => p === turn.player);
   if (!player) throw new Error(`cannot find player ${turn.player}`);
 
@@ -52,9 +69,38 @@ const TurnInfo: React.FC<{ game: Game; turn: Turn; marks: Game["marks"] }> = ({
   return (
     <div className="border rounded-md w-full px-4 py-2">
       <div className="flex flex-col space-y-2">
-        <p>
-          <Explaination turn={turn} />
-        </p>
+        <div className="flex flex-row justify-between space-x-2">
+          <p>
+            <Explaination turn={turn} />
+          </p>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+              >
+                <TrashIcon />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Do you want to delete the turn?
+                </AlertDialogTitle>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <Button
+                  variant="destructive"
+                  onClick={() => deleteGameTurn({ id: game.id, turn })}
+                >
+                  Delete
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
         {clues.length > 0 && (
           <GameNoteTable
             id={game.id}

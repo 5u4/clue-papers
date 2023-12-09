@@ -64,7 +64,7 @@ const Inner: React.FC<{ id: string }> = ({ id }) => {
     <div className="flex flex-col space-y-4">
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="outline">Clone Game</Button>
+          <Button variant="outline">Replay</Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>

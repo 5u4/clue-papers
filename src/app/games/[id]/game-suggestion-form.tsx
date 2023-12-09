@@ -1,6 +1,7 @@
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAtomValue, useSetAtom } from "jotai/react";
+import { nanoid } from "nanoid";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -57,6 +58,7 @@ export const GameSuggestionForm: React.FC<Props> = ({
     addGameTurn({
       id,
       turn: {
+        id: nanoid(),
         type: "suggestion",
         player,
         suggestions: [values.who, values.what, values.where],

@@ -1,5 +1,6 @@
 import React from "react";
 import { useAtomValue, useSetAtom } from "jotai/react";
+import { nanoid } from "nanoid";
 
 import { Button } from "~/components/ui/button";
 import { addGameTurnActionAtom, gamesReadOnlyAtom } from "~/data/games-store";
@@ -29,6 +30,7 @@ export const GameNoActionForm: React.FC<Props> = ({
           addGameTurn({
             id,
             turn: {
+              id: nanoid(),
               type: "idle",
               player,
               createdAt: new Date(),

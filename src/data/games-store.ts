@@ -8,6 +8,7 @@ import { addPlayerActionAtom, playersReadOnlyAtom } from "./players-store";
 export const ANSWER_PLAYER_ID = "-";
 
 const baseTurnSchema = z.object({
+  id: z.string().nullish(),
   player: z.string(),
   createdAt: z.coerce.date(),
 });
@@ -143,6 +144,20 @@ export const addGameTurnActionAtom = atom(
 
     game.turns.push({ ...props.turn });
 
+    set(gamesAtom, (state) => [...state]);
+  },
+);
+
+export const deleteGameTurnActionAtom = atom(
+  null,
+  (get, set, props: { id: string; turn: Turn }) => {
+    const game = get(gamesAtom).find((g) => g.id === props.id);
+    if (!game) throw new Error(`cannot find game ${props.id}`);
+
+    game.turns = game.turns.filter(
+      (turn) =>
+        turn.id !== props.turn.id && +turn.createdAt !== +props.turn.createdAt,
+    );
     set(gamesAtom, (state) => [...state]);
   },
 );
