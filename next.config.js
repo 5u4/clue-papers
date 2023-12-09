@@ -3,7 +3,7 @@ const nextConfig = {
   rewrites() {
     return [
       {
-        source: "/ingest/:path*",
+        source: "/ingest/:path(.*)",
         destination: "https://app.posthog.com/:path*",
       },
     ];
