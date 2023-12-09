@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 
+import { Footer } from "~/app/footer";
 import { cn } from "~/utils/ui";
 
 import "./globals.css";
@@ -33,13 +34,16 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn(
-        "min-h-screen bg-background font-sans antialiased",
+        "min-h-screen h-full bg-background font-sans antialiased",
         `${GeistSans.variable} ${GeistMono.variable}`,
       )}
     >
       <head />
-      <body>
-        <div className="max-w-xl mx-auto py-4 px-2 sm:px-4">{children}</div>
+      <body className="h-full">
+        <div className="h-full max-w-xl mx-auto py-4 px-2 sm:px-4 flex flex-col justify-between space-y-6">
+          <div>{children}</div>
+          <Footer />
+        </div>
       </body>
     </html>
   );
