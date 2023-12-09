@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 
 import { Footer } from "~/app/footer";
+import { PHProvider, PostHogPageview } from "~/app/providers";
 import { cn } from "~/utils/ui";
 
 import "./globals.css";
@@ -38,13 +40,19 @@ export default function RootLayout({
         `${GeistSans.variable} ${GeistMono.variable}`,
       )}
     >
+      <Suspense>
+        <PostHogPageview />
+      </Suspense>
+
       <head />
-      <body className="h-full">
-        <div className="h-full max-w-xl mx-auto py-4 px-2 sm:px-4 flex flex-col justify-between space-y-6">
-          <div>{children}</div>
-          <Footer />
-        </div>
-      </body>
+      <PHProvider>
+        <body className="h-full">
+          <div className="h-full max-w-xl mx-auto py-4 px-2 sm:px-4 flex flex-col justify-between space-y-6">
+            <div>{children}</div>
+            <Footer />
+          </div>
+        </body>
+      </PHProvider>
     </html>
   );
 }
