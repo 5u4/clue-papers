@@ -9,7 +9,19 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Clue Paper",
   description: "Clue Paper",
+  applicationName: "Clue Paper",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
+  keywords: [
+    "clue",
+    "cluedo",
+    "online",
+    "board game",
+    "best board games",
+    "clue solver",
+    "clue paper online",
+    "game",
+    "clue with history",
+  ],
 };
 
 export default function RootLayout({
