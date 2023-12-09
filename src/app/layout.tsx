@@ -9,7 +9,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Clue Paper",
-  description: "Clue Paper",
+  description: "🔍 Online paper for the board game Clue / Cluedo",
   applicationName: "Clue Paper",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   keywords: [
