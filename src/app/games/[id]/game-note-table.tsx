@@ -24,6 +24,7 @@ interface Props {
   clues: string[];
   marks: Game["marks"];
   displayClues?: Set<string> | undefined;
+  showBorderBThick?: boolean | undefined;
 }
 
 export const GameNoteTable: React.FC<Props> = ({
@@ -31,6 +32,7 @@ export const GameNoteTable: React.FC<Props> = ({
   clues,
   marks,
   displayClues = new Set([ANSWER_PLAYER_ID, ...clues]),
+  showBorderBThick = false,
 }) => {
   const games = useAtomValue(gamesReadOnlyAtom);
   const game = games.find((g) => g.id === id);
@@ -66,6 +68,9 @@ export const GameNoteTable: React.FC<Props> = ({
                     className={cn(
                       "text-center py-1 px-0.5 text-xs",
                       ansMark && "bg-green-50",
+                      showBorderBThick &&
+                        (clue === "Professor Plum" || clue === "Wrench") &&
+                        "border-b-4",
                     )}
                   >
                     {clue}
@@ -75,6 +80,10 @@ export const GameNoteTable: React.FC<Props> = ({
                     marks={marks}
                     clue={clue}
                     player={ANSWER_PLAYER_ID}
+                    borderBThick={
+                      showBorderBThick &&
+                      (clue === "Professor Plum" || clue === "Wrench")
+                    }
                   />
                   {Array.from({ length: game.players.length }).map((_, i) => {
                     return (
@@ -84,6 +93,10 @@ export const GameNoteTable: React.FC<Props> = ({
                         clue={clue}
                         player={game.players[i]!}
                         key={i}
+                        borderBThick={
+                          showBorderBThick &&
+                          (clue === "Professor Plum" || clue === "Wrench")
+                        }
                       />
                     );
                   })}
@@ -101,7 +114,8 @@ const NoteCell: React.FC<{
   marks: Game["marks"];
   clue: string;
   player: string;
-}> = ({ id, marks, clue, player }) => {
+  borderBThick?: boolean | undefined;
+}> = ({ id, marks, clue, player, borderBThick = false }) => {
   const games = useAtomValue(gamesReadOnlyAtom);
   const game = games.find((g) => g.id === id);
   if (!game) throw new Error(`cannot find game ${id}`);
@@ -112,7 +126,13 @@ const NoteCell: React.FC<{
   const setGameCustomMark = useSetAtom(setGameCustomMarkActionAtom);
 
   return (
-    <TableCell className={cn("text-center px-0.5", mark && "bg-green-50")}>
+    <TableCell
+      className={cn(
+        "text-center px-0.5",
+        mark && "bg-green-50",
+        borderBThick && "border-b-4",
+      )}
+    >
       <Button
         disabled={mark === "yes" || mark === "no"}
         variant="link"
