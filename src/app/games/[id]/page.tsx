@@ -31,7 +31,7 @@ export default function Page({ params: { id } }: { params: { id: string } }) {
   return (
     <>
       <Nav>
-        <H1>Game {id}</H1>
+        <H1>Game</H1>
       </Nav>
 
       <ClientOnly>

@@ -1,10 +1,10 @@
 export const cluesWho = [
-  "Miss Scarlett",
-  "Colonel Mustard",
-  "Dr. Orchid",
-  "Mr. Green",
-  "Mrs. Peacock",
-  "Professor Plum",
+  "Scarlett",
+  "Mustard",
+  "Orchid",
+  "Green",
+  "Peacock",
+  "Plum",
 ];
 
 export const cluesWhat = [

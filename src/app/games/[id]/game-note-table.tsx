@@ -69,7 +69,7 @@ export const GameNoteTable: React.FC<Props> = ({
                       "text-center py-1 px-0.5 text-xs",
                       ansMark && "bg-green-50",
                       showBorderBThick &&
-                        (clue === "Professor Plum" || clue === "Wrench") &&
+                        (clue === "Plum" || clue === "Wrench") &&
                         "border-b-4",
                     )}
                   >
@@ -81,8 +81,7 @@ export const GameNoteTable: React.FC<Props> = ({
                     clue={clue}
                     player={ANSWER_PLAYER_ID}
                     borderBThick={
-                      showBorderBThick &&
-                      (clue === "Professor Plum" || clue === "Wrench")
+                      showBorderBThick && (clue === "Plum" || clue === "Wrench")
                     }
                   />
                   {Array.from({ length: game.players.length }).map((_, i) => {
@@ -95,7 +94,7 @@ export const GameNoteTable: React.FC<Props> = ({
                         key={i}
                         borderBThick={
                           showBorderBThick &&
-                          (clue === "Professor Plum" || clue === "Wrench")
+                          (clue === "Plum" || clue === "Wrench")
                         }
                       />
                     );
