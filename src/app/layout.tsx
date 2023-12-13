@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans";
 
 import { Footer } from "~/app/footer";
 import { PHProvider } from "~/app/providers";
+import { Toaster } from "~/components/ui/toaster";
 import { cn } from "~/utils/ui";
 
 import "./globals.css";
@@ -45,6 +46,7 @@ export default function RootLayout({
           <div className="h-full max-w-xl mx-auto py-4 px-2 sm:px-4 flex flex-col justify-between space-y-6">
             <div>{children}</div>
             <Footer />
+            <Toaster />
           </div>
         </body>
       </PHProvider>

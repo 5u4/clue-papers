@@ -21,12 +21,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { useToast } from "~/components/ui/use-toast";
 import { cluesWhat, cluesWhere, cluesWho } from "~/data/clues";
-import { addGameTurnActionAtom, gamesReadOnlyAtom } from "~/data/games-store";
+import {
+  addGameTurnActionAtom,
+  applyDraft,
+  computeTurnMarkDraft,
+  gamesReadOnlyAtom,
+  markToDisplay,
+  type Game,
+  type Turn,
+} from "~/data/games-store";
 
 interface Props {
   id: string;
   player: string;
+  marks: Game["marks"];
   onMakeAccusation: () => void;
 }
 
@@ -40,10 +50,12 @@ const formSchema = z.object({
 export const GameAccusationForm: React.FC<Props> = ({
   id,
   player,
+  marks,
   onMakeAccusation,
 }) => {
   const games = useAtomValue(gamesReadOnlyAtom);
   const game = games.find((g) => g.id === id);
+  const { toast } = useToast();
   if (!game) throw new Error(`cannot find game ${id}`);
 
   const addGameTurn = useSetAtom(addGameTurnActionAtom);
@@ -53,17 +65,30 @@ export const GameAccusationForm: React.FC<Props> = ({
   });
 
   const onSubmit = form.handleSubmit((values) => {
-    addGameTurn({
-      id,
-      turn: {
-        id: nanoid(),
-        type: "accusation",
-        player,
-        accusations: [values.who, values.what, values.where],
-        success: values.result === "success",
-        createdAt: new Date(),
-      },
-    });
+    const turn: Turn = {
+      id: nanoid(),
+      type: "accusation",
+      player,
+      accusations: [values.who, values.what, values.where],
+      success: values.result === "success",
+      createdAt: new Date(),
+    };
+
+    const draft = computeTurnMarkDraft(turn, game);
+    const { conflicts } = applyDraft(marks, draft);
+    if (conflicts.length > 0) {
+      return toast({
+        title: "Invalid move",
+        description: `Conflicts: [${conflicts
+          .map(
+            ({ clue, player, value }) =>
+              `${clue} ${player} ${markToDisplay(value)}`,
+          )
+          .join("], [")}]`,
+      });
+    }
+
+    addGameTurn({ id, turn });
     onMakeAccusation();
   });
 

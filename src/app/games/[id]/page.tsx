@@ -88,7 +88,7 @@ const Inner: React.FC<{ id: string }> = ({ id }) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <GameNextActionSheet id={id} />
+      <GameNextActionSheet id={id} marks={marks} />
       <Tabs defaultValue="note">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="note">Note</TabsTrigger>

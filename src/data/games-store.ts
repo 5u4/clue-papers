@@ -166,146 +166,93 @@ export const deleteGameActionAtom = atom(null, (_get, set, id: string) => {
   set(gamesAtom, (state) => state.filter((g) => g.id !== id));
 });
 
-export const computeMarks = (game: Game) => {
-  const marks: Game["marks"] = {};
-
-  const markYes = (clueId: string, player: string) => {
-    // TODO mark invalid state
-    if (!(clueId in marks)) marks[clueId] = {};
-    for (const p of game.players) {
-      marks[clueId]![p] = p === player ? "yes" : "no";
+export const computeTurnMarkDraft = (turn: Turn, game: Game) => {
+  const draft: Game["marks"] = {};
+  if (turn.type === "suggestion") {
+    let currentPlayer = turn.player;
+    const nextPlayer = () =>
+      game.players[
+        (game.players.findIndex((v) => v === currentPlayer) + 1) %
+          game.players.length
+      ];
+    currentPlayer = nextPlayer();
+    while (true) {
+      const shouldStop =
+        currentPlayer === turn.player || // when round back to player
+        currentPlayer === turn.disproved?.player; // when someone disproved
+      if (shouldStop) break;
+      for (const clue of turn.suggestions) {
+        if (!(clue in draft)) draft[clue] = {};
+        draft[clue][currentPlayer] = "no";
+      }
+      currentPlayer = nextPlayer();
     }
-    marks[clueId]![ANSWER_PLAYER_ID] =
-      player === ANSWER_PLAYER_ID ? "yes" : "no";
-  };
-
-  const markNo = (
-    clue: string,
-    player: string,
-    disprovedPlayer: string | null,
-  ) => {
-    // TODO mark invalid state
-    const playerIndex = game.players.findIndex((p) => p === player);
-    if (playerIndex <= -1) {
-      throw new Error(`cannot find player id ${player}`);
+    if (turn.disproved?.clue) {
+      if (!(turn.disproved.clue in draft)) draft[turn.disproved.clue] = {};
+      for (const player of game.players) {
+        draft[turn.disproved.clue][player] =
+          player === turn.disproved.player ? "yes" : "no";
+      }
+      draft[turn.disproved.clue][ANSWER_PLAYER_ID] = "no";
     }
-
-    const disprovedIndex = game.players.findIndex((p) => p === disprovedPlayer);
-    if (disprovedPlayer !== null && disprovedIndex <= -1) {
-      throw new Error(`cannot find disprove player id ${disprovedPlayer}`);
-    }
-
-    const startIndex = (playerIndex + 1) % game.players.length;
-    const _endIndex =
-      ((disprovedIndex > -1 ? disprovedIndex : playerIndex) +
-        game.players.length -
-        1) %
-      game.players.length;
-    const endIndex =
-      _endIndex < startIndex ? _endIndex + game.players.length : _endIndex;
-
-    if (!(clue in marks)) marks[clue] = {};
-
-    for (let i = startIndex; i <= endIndex; i++) {
-      const pid = game.players.at(i % game.players.length);
-      if (pid) marks[clue]![pid] = "no";
-    }
-  };
-
-  // mark initials
-  const player = game.players.at(0)!;
-  for (const clue of game.clues ?? []) {
-    markYes(clue, player);
-    // TODO mark player other clues 'no'
   }
 
-  for (const turn of game.turns) {
-    if (turn.type === "suggestion") {
-      /**
-       * mark all undisproved suggestions no
-       */
-      for (const clue of turn.suggestions) {
-        markNo(clue, turn.player, turn.disproved?.player ?? null);
-        // TODO mark question on empty cells
-      }
-
-      /**
-       * self turn, suggested clues been disproved by others and you see the clue
-       */
-      if (turn.player === player && turn.disproved?.clue) {
-        markYes(turn.disproved.clue, turn.disproved.player);
+  if (turn.type === "accusation" && turn.success) {
+    for (const clue of turn.accusations) {
+      draft[clue][ANSWER_PLAYER_ID] = "yes";
+      for (const player of game.players) {
+        draft[clue][player] = "no";
       }
     }
+  }
 
-    if (turn.type === "accusation") {
-      if (turn.success) {
-        for (const clue of turn.accusations) {
-          markYes(clue, ANSWER_PLAYER_ID);
-        }
+  return draft;
+};
+
+export const applyDraft = (current: Game["marks"], draft: Game["marks"]) => {
+  current = JSON.parse(JSON.stringify(current)) as Game["marks"];
+  draft = JSON.parse(JSON.stringify(draft)) as Game["marks"];
+
+  const conflicts: { clue: string; player: string; value: MarkSymbol }[] = [];
+  for (const [clue, x] of Object.entries(draft)) {
+    for (const [player, draftValue] of Object.entries(x)) {
+      const currentCell = current?.[clue]?.[player];
+      if (
+        (currentCell === "yes" || currentCell === "no") &&
+        currentCell !== draftValue
+      ) {
+        conflicts.push({ clue, player, value: currentCell });
+        continue;
       }
+      if (!(clue in current)) current[clue] = {};
+      current[clue][player] = draftValue;
     }
+  }
+
+  return { current, conflicts };
+};
+
+export const computeMarks = (game: Game) => {
+  let marks: Game["marks"] = {};
+
+  // mark initials
+  for (const clue of game.clues ?? []) {
+    if (!(clue in marks)) marks[clue] = {};
+    for (const player of game.players) {
+      marks[clue][player] = player === game.players.at(0) ? "yes" : "no";
+      marks[clue][ANSWER_PLAYER_ID] = "no";
+    }
+  }
+
+  const drafts = game.turns
+    .toSorted((a, b) => +a.createdAt - +b.createdAt)
+    .map((turn) => computeTurnMarkDraft(turn, game));
+
+  for (const draft of drafts) {
+    const { current, conflicts } = applyDraft(marks, draft);
+    if (conflicts.length > 0) throw new Error(`invalid turns`);
+    marks = current;
   }
 
   return marks;
-};
-
-type Counter = { clue: string; player: string };
-export const isTurnValid = (
-  marks: Game["marks"],
-  game: Game,
-  turn: Turn,
-): true | Counter => {
-  if (turn.type === "idle") return true;
-
-  if (turn.type === "accusation") {
-    if (!turn.success) return true;
-
-    for (const accusation of turn.accusations) {
-      for (const player of game.players) {
-        if (marks[accusation]?.[player] === "yes") {
-          return { clue: accusation, player };
-        }
-      }
-    }
-
-    return true;
-  }
-
-  if (turn.type === "suggestion") {
-    const playerIndex = game.players.findIndex((p) => p === turn.player);
-    if (playerIndex <= -1) {
-      throw new Error(`cannot find player id ${turn.player}`);
-    }
-
-    const disprovedIndex = game.players.findIndex(
-      (p) => p === turn.disproved?.player,
-    );
-    if (!turn.disproved?.player && disprovedIndex <= -1) {
-      throw new Error(
-        `cannot find disprove player id ${turn.disproved?.player}`,
-      );
-    }
-
-    const startIndex = (playerIndex + 1) % game.players.length;
-    const _endIndex =
-      ((disprovedIndex > -1 ? disprovedIndex : playerIndex) +
-        game.players.length -
-        1) %
-      game.players.length;
-    const endIndex =
-      _endIndex < startIndex ? _endIndex + game.players.length : _endIndex;
-
-    for (const suggestion of turn.suggestions) {
-      for (let i = startIndex; i <= endIndex; i++) {
-        const pid = game.players.at(i % game.players.length);
-        if (pid && marks[suggestion]?.[pid] === "yes") {
-          return { clue: suggestion, player: pid };
-        }
-      }
-    }
-
-    return true;
-  }
-
-  throw new Error("unhandled");
 };

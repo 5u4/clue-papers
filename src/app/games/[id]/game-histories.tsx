@@ -20,6 +20,7 @@ import {
   type Game,
   type Turn,
 } from "~/data/games-store";
+import { notEmpty } from "~/utils/not-empty";
 
 interface Props {
   id: string;
@@ -107,6 +108,25 @@ const TurnInfo: React.FC<{ game: Game; turn: Turn; marks: Game["marks"] }> = ({
             clues={clues}
             marks={marks}
             displayClues={new Set(clues)}
+            boldPlayers={
+              new Set(
+                [
+                  player,
+                  turn.type === "suggestion" && turn.disproved?.player
+                    ? turn.disproved.player
+                    : undefined,
+                ].filter(notEmpty),
+              )
+            }
+            boldClues={
+              new Set(
+                [
+                  turn.type === "suggestion" && turn.disproved?.clue
+                    ? turn.disproved.clue
+                    : undefined,
+                ].filter(notEmpty),
+              )
+            }
           />
         )}
         <TimeAgo

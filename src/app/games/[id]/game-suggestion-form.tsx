@@ -22,8 +22,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { useToast } from "~/components/ui/use-toast";
 import { cluesWhat, cluesWhere, cluesWho } from "~/data/clues";
-import { addGameTurnActionAtom, gamesReadOnlyAtom } from "~/data/games-store";
+import {
+  addGameTurnActionAtom,
+  applyDraft,
+  computeTurnMarkDraft,
+  gamesReadOnlyAtom,
+  markToDisplay,
+  type Game,
+  type Turn,
+} from "~/data/games-store";
 
 const formSchema = z.object({
   who: z.string({ required_error: "Required" }).min(1),
@@ -36,16 +45,19 @@ const formSchema = z.object({
 interface Props {
   id: string;
   player: string;
+  marks: Game["marks"];
   onMakeSuggestion: (f: z.infer<typeof formSchema>) => void;
 }
 
 export const GameSuggestionForm: React.FC<Props> = ({
   id,
   player,
+  marks,
   onMakeSuggestion,
 }) => {
   const games = useAtomValue(gamesReadOnlyAtom);
   const game = games.find((g) => g.id === id);
+  const { toast } = useToast();
   if (!game) throw new Error(`cannot find game ${id}`);
 
   const addGameTurn = useSetAtom(addGameTurnActionAtom);
@@ -55,25 +67,38 @@ export const GameSuggestionForm: React.FC<Props> = ({
   });
 
   const onSubmit = form.handleSubmit((values) => {
-    addGameTurn({
-      id,
-      turn: {
-        id: nanoid(),
-        type: "suggestion",
-        player,
-        suggestions: [values.who, values.what, values.where],
-        disproved: values.disprovedBy
-          ? {
-              player: values.disprovedBy,
-              clue:
-                player === game.players.at(0)
-                  ? values.disprovedWith ?? null
-                  : null,
-            }
-          : null,
-        createdAt: new Date(),
-      },
-    });
+    const turn: Turn = {
+      id: nanoid(),
+      type: "suggestion",
+      player,
+      suggestions: [values.who, values.what, values.where],
+      disproved: values.disprovedBy
+        ? {
+            player: values.disprovedBy,
+            clue:
+              player === game.players.at(0)
+                ? values.disprovedWith ?? null
+                : null,
+          }
+        : null,
+      createdAt: new Date(),
+    };
+
+    const draft = computeTurnMarkDraft(turn, game);
+    const { conflicts } = applyDraft(marks, draft);
+    if (conflicts.length > 0) {
+      return toast({
+        title: "Invalid move",
+        description: `Conflicts: [${conflicts
+          .map(
+            ({ clue, player, value }) =>
+              `${clue} ${player} ${markToDisplay(value)}`,
+          )
+          .join("], [")}]`,
+      });
+    }
+
+    addGameTurn({ id, turn });
     onMakeSuggestion(values);
   });
 

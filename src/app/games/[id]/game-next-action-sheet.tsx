@@ -21,14 +21,15 @@ import {
   SheetTrigger,
 } from "~/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { gamesReadOnlyAtom } from "~/data/games-store";
+import { gamesReadOnlyAtom, type Game } from "~/data/games-store";
 import { cn } from "~/utils/ui";
 
 interface Props {
   id: string;
+  marks: Game["marks"];
 }
 
-export const GameNextActionSheet: React.FC<Props> = ({ id }) => {
+export const GameNextActionSheet: React.FC<Props> = ({ id, marks }) => {
   const games = useAtomValue(gamesReadOnlyAtom);
   const game = games.find((g) => g.id === id);
   if (!game) throw new Error(`cannot find game ${id}`);
@@ -91,6 +92,7 @@ export const GameNextActionSheet: React.FC<Props> = ({ id }) => {
                 <GameSuggestionForm
                   id={id}
                   player={player!}
+                  marks={marks}
                   onMakeSuggestion={() => setSheetOpen(false)}
                 />
               </TabsContent>
@@ -105,6 +107,7 @@ export const GameNextActionSheet: React.FC<Props> = ({ id }) => {
                 <GameAccusationForm
                   id={id}
                   player={player!}
+                  marks={marks}
                   onMakeAccusation={() => setSheetOpen(false)}
                 />
               </TabsContent>

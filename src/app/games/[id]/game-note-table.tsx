@@ -24,6 +24,8 @@ interface Props {
   clues: string[];
   marks: Game["marks"];
   displayClues?: Set<string> | undefined;
+  boldPlayers?: Set<string> | undefined;
+  boldClues?: Set<string> | undefined;
   showBorderBThick?: boolean | undefined;
 }
 
@@ -32,6 +34,8 @@ export const GameNoteTable: React.FC<Props> = ({
   clues,
   marks,
   displayClues = new Set([ANSWER_PLAYER_ID, ...clues]),
+  boldPlayers = new Set(),
+  boldClues = new Set(),
   showBorderBThick = false,
 }) => {
   const games = useAtomValue(gamesReadOnlyAtom);
@@ -50,7 +54,10 @@ export const GameNoteTable: React.FC<Props> = ({
             {game.players.map((player) => (
               <TableHead
                 key={player}
-                className="text-center text-xs px-0.5 min-w-[42px]"
+                className={cn(
+                  "text-center text-xs px-0.5 min-w-[42px]",
+                  boldPlayers.has(player) && "font-bold underline text-primary",
+                )}
               >
                 {player}
               </TableHead>
@@ -71,6 +78,7 @@ export const GameNoteTable: React.FC<Props> = ({
                       showBorderBThick &&
                         (clue === "Plum" || clue === "Wrench") &&
                         "border-b-4",
+                      boldClues.has(clue) && "font-bold underline text-primary",
                     )}
                   >
                     {clue}
