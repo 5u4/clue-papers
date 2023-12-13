@@ -87,7 +87,7 @@ const SortableItem: React.FC<{ name: string; onDelete: () => void }> = ({
 
   return (
     <div
-      className="w-full pl-3 pr-2 py-2 flex items-center justify-between rounded-md border bg-white"
+      className="w-full pl-3 pr-2 flex items-center justify-between rounded-md border bg-white select-none"
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(transform),
@@ -97,7 +97,9 @@ const SortableItem: React.FC<{ name: string; onDelete: () => void }> = ({
       {name}
 
       <div className="flex flex-row items-center justify-between space-x-2">
-        <DragHandleDots2Icon {...attributes} {...listeners} />
+        <div className="p-4" {...attributes} {...listeners}>
+          <DragHandleDots2Icon />
+        </div>
 
         <Button variant="outline" size="icon" onClick={onDelete}>
           <Cross2Icon />
