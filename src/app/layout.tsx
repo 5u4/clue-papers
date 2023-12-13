@@ -46,8 +46,8 @@ export default function RootLayout({
           <div className="h-full max-w-xl mx-auto py-4 px-2 sm:px-4 flex flex-col justify-between space-y-6">
             <div>{children}</div>
             <Footer />
-            <Toaster />
           </div>
+          <Toaster />
         </body>
       </PHProvider>
     </html>
