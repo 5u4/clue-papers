@@ -3,6 +3,7 @@ import { atom } from "jotai/vanilla";
 import { customAlphabet } from "nanoid";
 import { z } from "zod";
 
+import { clues } from "./clues";
 import { addPlayerActionAtom, playersReadOnlyAtom } from "./players-store";
 
 export const ANSWER_PLAYER_ID = "-";
@@ -236,12 +237,17 @@ export const computeMarks = (game: Game) => {
   let marks: Game["marks"] = {};
 
   // mark initials
+  const self = game.players.at(0)!;
   for (const clue of game.clues ?? []) {
     if (!(clue in marks)) marks[clue] = {};
     for (const player of game.players) {
-      marks[clue][player] = player === game.players.at(0) ? "yes" : "no";
+      marks[clue][player] = player === self ? "yes" : "no";
       marks[clue][ANSWER_PLAYER_ID] = "no";
     }
+  }
+  for (const clue of clues) {
+    if (!(clue in marks)) marks[clue] = {};
+    if (!(self in marks[clue])) marks[clue][self] = "no";
   }
 
   const drafts = game.turns
