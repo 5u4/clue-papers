@@ -58,7 +58,7 @@ export const gameSchema = z.object({
 });
 export type Game = z.infer<typeof gameSchema>;
 
-const gamesAtom = atomWithStorage<Game[]>("games-v2", [], undefined, {
+const gamesAtom = atomWithStorage<Game[]>("games-v3", [], undefined, {
   getOnInit: true,
 });
 
