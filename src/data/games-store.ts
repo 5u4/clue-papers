@@ -38,7 +38,7 @@ const markSymbolSchema = z.union([
 ]);
 export type MarkSymbol = z.infer<typeof markSymbolSchema>;
 export const markToDisplay = (mark: MarkSymbol) =>
-  mark === "no" ? "❌" : mark === "?" ? "❓" : mark === "yes" ? "✅" : "⬜️";
+  mark === "no" ? "❌" : mark === "?" ? "❓" : mark === "yes" ? "⭕️" : "⬜️";
 
 export const gameSchema = z.object({
   id: z.string(),

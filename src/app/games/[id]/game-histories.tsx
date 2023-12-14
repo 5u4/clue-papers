@@ -15,6 +15,7 @@ import {
 } from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
 import {
+  computeTurnMarkDraft,
   deleteGameTurnActionAtom,
   gamesReadOnlyAtom,
   type Game,
@@ -111,7 +112,7 @@ const TurnInfo: React.FC<{ game: Game; turn: Turn; marks: Game["marks"] }> = ({
             boldPlayers={
               new Set(
                 [
-                  player,
+                  turn.type === "accusation" ? player : undefined,
                   turn.type === "suggestion" && turn.disproved?.player
                     ? turn.disproved.player
                     : undefined,
@@ -127,6 +128,7 @@ const TurnInfo: React.FC<{ game: Game; turn: Turn; marks: Game["marks"] }> = ({
                 ].filter(notEmpty),
               )
             }
+            highlightDraft={computeTurnMarkDraft(turn, game)}
           />
         )}
         <TimeAgo
