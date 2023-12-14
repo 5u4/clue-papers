@@ -29,6 +29,7 @@ import {
   applyDraft,
   computeTurnMarkDraft,
   gamesReadOnlyAtom,
+  markGameCustomMarkQuestionActionAtom,
   markToDisplay,
   type Game,
   type Turn,
@@ -61,6 +62,9 @@ export const GameSuggestionForm: React.FC<Props> = ({
   if (!game) throw new Error(`cannot find game ${id}`);
 
   const addGameTurn = useSetAtom(addGameTurnActionAtom);
+  const markGameCustomMarkQuestion = useSetAtom(
+    markGameCustomMarkQuestionActionAtom,
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -98,6 +102,13 @@ export const GameSuggestionForm: React.FC<Props> = ({
       });
     }
 
+    if (turn.disproved?.player) {
+      markGameCustomMarkQuestion({
+        id,
+        player: turn.disproved?.player,
+        clues: turn.suggestions,
+      });
+    }
     addGameTurn({ id, turn });
     onMakeSuggestion(values);
   });

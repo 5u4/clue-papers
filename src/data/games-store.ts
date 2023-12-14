@@ -137,6 +137,23 @@ export const setGameCustomMarkActionAtom = atom(
   },
 );
 
+export const markGameCustomMarkQuestionActionAtom = atom(
+  null,
+  (get, set, props: { id: string; player: string; clues: string[] }) => {
+    const game = get(gamesAtom).find((g) => g.id === props.id);
+    if (!game) throw new Error(`cannot find game ${props.id}`);
+
+    for (const clue of props.clues) {
+      if (!(clue in game.marks)) game.marks[clue] = {};
+      if (!game.marks[clue]?.[props.player]) {
+        game.marks[clue][props.player] = "?";
+      }
+    }
+
+    set(gamesAtom, (state) => [...state]);
+  },
+);
+
 export const addGameTurnActionAtom = atom(
   null,
   (get, set, props: { id: string; turn: Turn }) => {
