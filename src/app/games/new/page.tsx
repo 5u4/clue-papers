@@ -72,7 +72,7 @@ const Inner = () => {
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm order correctly</AlertDialogTitle>
+            <AlertDialogTitle>Confirm Turn Order</AlertDialogTitle>
             <AlertDialogDescription>
               You are playing as{" "}
               <span className="font-semibold underline">{names[0]}</span>. The
