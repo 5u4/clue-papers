@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 
-import { Footer } from "~/app/footer";
 import { PHProvider } from "~/app/providers";
 import { Toaster } from "~/components/ui/toaster";
 import { cn } from "~/utils/ui";
@@ -43,11 +42,10 @@ export default function RootLayout({
       <head />
       <PHProvider>
         <body className="h-full">
-          <div className="h-full max-w-xl mx-auto py-4 px-2 sm:px-4 flex flex-col justify-between space-y-6">
-            <div>{children}</div>
-            <Footer />
+          <div className="h-full max-w-xl mx-auto py-4 px-2 sm:px-4">
+            {children}
+            <Toaster />
           </div>
-          <Toaster />
         </body>
       </PHProvider>
     </html>
