@@ -37,7 +37,9 @@ export const GameNextActionSheet: React.FC<Props> = ({ id, marks }) => {
   const [sheetOpen, _setSheetOpen] = useState(false);
   const setSheetOpen = (v: boolean) => {
     const pid = (() => {
-      const lastPlayer = game.turns.at(-1)?.player;
+      const lastPlayer = game.turns
+        .toSorted((a, b) => +a.createdAt - +b.createdAt)
+        .at(-1)?.player;
       if (!lastPlayer) return null;
       const lastPlayerIdx = game.players.findIndex((p) => p === lastPlayer);
       return game.players.at((lastPlayerIdx + 1) % game.players.length) ?? null;
