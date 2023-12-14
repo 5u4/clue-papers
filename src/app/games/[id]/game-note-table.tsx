@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { cluesWhat, cluesWho } from "~/data/clues";
 import {
   ANSWER_PLAYER_ID,
   gamesReadOnlyAtom,
@@ -80,7 +81,8 @@ export const GameNoteTable: React.FC<Props> = ({
                       "text-center py-1 px-0.5 text-xs",
                       ansMark && "bg-green-50",
                       showBorderBThick &&
-                        (clue === "Plum" || clue === "Wrench") &&
+                        (clue === cluesWho.at(-1) ||
+                          clue === cluesWhat.at(-1)) &&
                         "border-b-4",
                       boldClues.has(clue) && "font-bold underline text-primary",
                     )}
@@ -93,7 +95,8 @@ export const GameNoteTable: React.FC<Props> = ({
                     clue={clue}
                     player={ANSWER_PLAYER_ID}
                     borderBThick={
-                      showBorderBThick && (clue === "Plum" || clue === "Wrench")
+                      showBorderBThick &&
+                      (clue === cluesWho.at(-1) || clue === cluesWhat.at(-1))
                     }
                     highlight={!!highlightDraft?.[clue]?.[ANSWER_PLAYER_ID]}
                   />
@@ -107,7 +110,8 @@ export const GameNoteTable: React.FC<Props> = ({
                         key={i}
                         borderBThick={
                           showBorderBThick &&
-                          (clue === "Plum" || clue === "Wrench")
+                          (clue === cluesWho.at(-1) ||
+                            clue === cluesWhat.at(-1))
                         }
                         highlight={!!highlightDraft?.[clue]?.[game.players[i]!]}
                       />

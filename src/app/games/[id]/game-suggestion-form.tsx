@@ -88,6 +88,14 @@ export const GameSuggestionForm: React.FC<Props> = ({
       createdAt: new Date(),
     };
 
+    if (
+      turn.player === game.players.at(0) &&
+      turn.disproved?.player &&
+      !turn.disproved.clue
+    ) {
+      return toast({ title: "Missing disproved clue", variant: "destructive" });
+    }
+
     const draft = computeTurnMarkDraft(turn, game);
     const { conflicts } = applyDraft(marks, draft);
     if (conflicts.length > 0) {
@@ -232,7 +240,7 @@ export const GameSuggestionForm: React.FC<Props> = ({
                       player !== game.players.at(0)
                     }
                   >
-                    <SelectValue placeholder="Select disprover" />
+                    <SelectValue placeholder="Select disproved clue" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
